@@ -30,7 +30,7 @@
 /*  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                          */
 /* ============================================================================ */
 
-/* This file supports MSP430FR2433 devices. */
+/* This file supports MSP430F5529 devices. */
 /* Version: 1.211 */
 /* Default linker script, for normal executables */
 
@@ -40,79 +40,83 @@ ENTRY(_start)
 MEMORY {
   SFR              : ORIGIN = 0x0000, LENGTH = 0x0010 /* END=0x0010, size 16 */
   BSL              : ORIGIN = 0x1000, LENGTH = 0x0800
-  RAM              : ORIGIN = 0x2000, LENGTH = 0x1000 /* END=0x2FFF, size 4096 */
-  INFOMEM          : ORIGIN = 0x1800, LENGTH = 0x0200 /* END=0x19FF, size 512 as 1 512-byte segments */
-  INFOA            : ORIGIN = 0x1800, LENGTH = 0x0200 /* END=0x19FF, size 512 */
-  FRAM (rx)        : ORIGIN = 0xC400, LENGTH = 0x1400 /* END=0xFF7F, size 1024 */
-  NVMRAM           : ORIGIN = 0xD800, LENGTH = 0x2780 /* END=0xFF7F, size 15232 */
-  JTAGSIGNATURE    : ORIGIN = 0xFF80, LENGTH = 0x0004
-  BSLSIGNATURE     : ORIGIN = 0xFF84, LENGTH = 0x0004
-  VECT1            : ORIGIN = 0xFF88, LENGTH = 0x0002
-  VECT2            : ORIGIN = 0xFF8A, LENGTH = 0x0002
-  VECT3            : ORIGIN = 0xFF8C, LENGTH = 0x0002
-  VECT4            : ORIGIN = 0xFF8E, LENGTH = 0x0002
-  VECT5            : ORIGIN = 0xFF90, LENGTH = 0x0002
-  VECT6            : ORIGIN = 0xFF92, LENGTH = 0x0002
-  VECT7            : ORIGIN = 0xFF94, LENGTH = 0x0002
-  VECT8            : ORIGIN = 0xFF96, LENGTH = 0x0002
-  VECT9            : ORIGIN = 0xFF98, LENGTH = 0x0002
-  VECT10           : ORIGIN = 0xFF9A, LENGTH = 0x0002
-  VECT11           : ORIGIN = 0xFF9C, LENGTH = 0x0002
-  VECT12           : ORIGIN = 0xFF9E, LENGTH = 0x0002
-  VECT13           : ORIGIN = 0xFFA0, LENGTH = 0x0002
-  VECT14           : ORIGIN = 0xFFA2, LENGTH = 0x0002
-  VECT15           : ORIGIN = 0xFFA4, LENGTH = 0x0002
-  VECT16           : ORIGIN = 0xFFA6, LENGTH = 0x0002
-  VECT17           : ORIGIN = 0xFFA8, LENGTH = 0x0002
-  VECT18           : ORIGIN = 0xFFAA, LENGTH = 0x0002
-  VECT19           : ORIGIN = 0xFFAC, LENGTH = 0x0002
-  VECT20           : ORIGIN = 0xFFAE, LENGTH = 0x0002
-  VECT21           : ORIGIN = 0xFFB0, LENGTH = 0x0002
-  VECT22           : ORIGIN = 0xFFB2, LENGTH = 0x0002
-  VECT23           : ORIGIN = 0xFFB4, LENGTH = 0x0002
-  VECT24           : ORIGIN = 0xFFB6, LENGTH = 0x0002
-  VECT25           : ORIGIN = 0xFFB8, LENGTH = 0x0002
-  VECT26           : ORIGIN = 0xFFBA, LENGTH = 0x0002
-  VECT27           : ORIGIN = 0xFFBC, LENGTH = 0x0002
-  VECT28           : ORIGIN = 0xFFBE, LENGTH = 0x0002
-  VECT29           : ORIGIN = 0xFFC0, LENGTH = 0x0002
-  VECT30           : ORIGIN = 0xFFC2, LENGTH = 0x0002
-  VECT31           : ORIGIN = 0xFFC4, LENGTH = 0x0002
-  VECT32           : ORIGIN = 0xFFC6, LENGTH = 0x0002
-  VECT33           : ORIGIN = 0xFFC8, LENGTH = 0x0002
-  VECT34           : ORIGIN = 0xFFCA, LENGTH = 0x0002
-  VECT35           : ORIGIN = 0xFFCC, LENGTH = 0x0002
-  VECT36           : ORIGIN = 0xFFCE, LENGTH = 0x0002
-  VECT37           : ORIGIN = 0xFFD0, LENGTH = 0x0002
-  VECT38           : ORIGIN = 0xFFD2, LENGTH = 0x0002
-  VECT39           : ORIGIN = 0xFFD4, LENGTH = 0x0002
-  VECT40           : ORIGIN = 0xFFD6, LENGTH = 0x0002
-  VECT41           : ORIGIN = 0xFFD8, LENGTH = 0x0002
-  VECT42           : ORIGIN = 0xFFDA, LENGTH = 0x0002
-  VECT43           : ORIGIN = 0xFFDC, LENGTH = 0x0002
-  VECT44           : ORIGIN = 0xFFDE, LENGTH = 0x0002
-  VECT45           : ORIGIN = 0xFFE0, LENGTH = 0x0002
-  VECT46           : ORIGIN = 0xFFE2, LENGTH = 0x0002
-  VECT47           : ORIGIN = 0xFFE4, LENGTH = 0x0002
-  VECT48           : ORIGIN = 0xFFE6, LENGTH = 0x0002
-  VECT49           : ORIGIN = 0xFFE8, LENGTH = 0x0002
-  VECT50           : ORIGIN = 0xFFEA, LENGTH = 0x0002
-  VECT51           : ORIGIN = 0xFFEC, LENGTH = 0x0002
-  VECT52           : ORIGIN = 0xFFEE, LENGTH = 0x0002
-  VECT53           : ORIGIN = 0xFFF0, LENGTH = 0x0002
-  VECT54           : ORIGIN = 0xFFF2, LENGTH = 0x0002
-  VECT55           : ORIGIN = 0xFFF4, LENGTH = 0x0002
-  VECT56           : ORIGIN = 0xFFF6, LENGTH = 0x0002
-  VECT57           : ORIGIN = 0xFFF8, LENGTH = 0x0002
-  VECT58           : ORIGIN = 0xFFFA, LENGTH = 0x0002
-  VECT59           : ORIGIN = 0xFFFC, LENGTH = 0x0002
+  RAM              : ORIGIN = 0x2400, LENGTH = 0x2000 /* END=0x43FF, size 8192 */
+  USBRAM           : ORIGIN = 0x1C00, LENGTH = 0x0800
+  INFOMEM          : ORIGIN = 0x1800, LENGTH = 0x0200 /* END=0x19FF, size 512 as 4 128-byte segments */
+  INFOA            : ORIGIN = 0x1980, LENGTH = 0x0080 /* END=0x19FF, size 128 */
+  INFOB            : ORIGIN = 0x1900, LENGTH = 0x0080 /* END=0x197F, size 128 */
+  INFOC            : ORIGIN = 0x1880, LENGTH = 0x0080 /* END=0x18FF, size 128 */
+  INFOD            : ORIGIN = 0x1800, LENGTH = 0x0080 /* END=0x187F, size 128 */
+  ROM (rx)         : ORIGIN = 0x4400, LENGTH = 0xBB80 /* END=0xFF7F, size 48000 */
+  HIROM (rx)       : ORIGIN = 0x00010000, LENGTH = 0x000143F7 /* Boundaries changed to fix CPU47 */
+  VECT1            : ORIGIN = 0xFF80, LENGTH = 0x0002
+  VECT2            : ORIGIN = 0xFF82, LENGTH = 0x0002
+  VECT3            : ORIGIN = 0xFF84, LENGTH = 0x0002
+  VECT4            : ORIGIN = 0xFF86, LENGTH = 0x0002
+  VECT5            : ORIGIN = 0xFF88, LENGTH = 0x0002
+  VECT6            : ORIGIN = 0xFF8A, LENGTH = 0x0002
+  VECT7            : ORIGIN = 0xFF8C, LENGTH = 0x0002
+  VECT8            : ORIGIN = 0xFF8E, LENGTH = 0x0002
+  VECT9            : ORIGIN = 0xFF90, LENGTH = 0x0002
+  VECT10           : ORIGIN = 0xFF92, LENGTH = 0x0002
+  VECT11           : ORIGIN = 0xFF94, LENGTH = 0x0002
+  VECT12           : ORIGIN = 0xFF96, LENGTH = 0x0002
+  VECT13           : ORIGIN = 0xFF98, LENGTH = 0x0002
+  VECT14           : ORIGIN = 0xFF9A, LENGTH = 0x0002
+  VECT15           : ORIGIN = 0xFF9C, LENGTH = 0x0002
+  VECT16           : ORIGIN = 0xFF9E, LENGTH = 0x0002
+  VECT17           : ORIGIN = 0xFFA0, LENGTH = 0x0002
+  VECT18           : ORIGIN = 0xFFA2, LENGTH = 0x0002
+  VECT19           : ORIGIN = 0xFFA4, LENGTH = 0x0002
+  VECT20           : ORIGIN = 0xFFA6, LENGTH = 0x0002
+  VECT21           : ORIGIN = 0xFFA8, LENGTH = 0x0002
+  VECT22           : ORIGIN = 0xFFAA, LENGTH = 0x0002
+  VECT23           : ORIGIN = 0xFFAC, LENGTH = 0x0002
+  VECT24           : ORIGIN = 0xFFAE, LENGTH = 0x0002
+  VECT25           : ORIGIN = 0xFFB0, LENGTH = 0x0002
+  VECT26           : ORIGIN = 0xFFB2, LENGTH = 0x0002
+  VECT27           : ORIGIN = 0xFFB4, LENGTH = 0x0002
+  VECT28           : ORIGIN = 0xFFB6, LENGTH = 0x0002
+  VECT29           : ORIGIN = 0xFFB8, LENGTH = 0x0002
+  VECT30           : ORIGIN = 0xFFBA, LENGTH = 0x0002
+  VECT31           : ORIGIN = 0xFFBC, LENGTH = 0x0002
+  VECT32           : ORIGIN = 0xFFBE, LENGTH = 0x0002
+  VECT33           : ORIGIN = 0xFFC0, LENGTH = 0x0002
+  VECT34           : ORIGIN = 0xFFC2, LENGTH = 0x0002
+  VECT35           : ORIGIN = 0xFFC4, LENGTH = 0x0002
+  VECT36           : ORIGIN = 0xFFC6, LENGTH = 0x0002
+  VECT37           : ORIGIN = 0xFFC8, LENGTH = 0x0002
+  VECT38           : ORIGIN = 0xFFCA, LENGTH = 0x0002
+  VECT39           : ORIGIN = 0xFFCC, LENGTH = 0x0002
+  VECT40           : ORIGIN = 0xFFCE, LENGTH = 0x0002
+  VECT41           : ORIGIN = 0xFFD0, LENGTH = 0x0002
+  VECT42           : ORIGIN = 0xFFD2, LENGTH = 0x0002
+  VECT43           : ORIGIN = 0xFFD4, LENGTH = 0x0002
+  VECT44           : ORIGIN = 0xFFD6, LENGTH = 0x0002
+  VECT45           : ORIGIN = 0xFFD8, LENGTH = 0x0002
+  VECT46           : ORIGIN = 0xFFDA, LENGTH = 0x0002
+  VECT47           : ORIGIN = 0xFFDC, LENGTH = 0x0002
+  VECT48           : ORIGIN = 0xFFDE, LENGTH = 0x0002
+  VECT49           : ORIGIN = 0xFFE0, LENGTH = 0x0002
+  VECT50           : ORIGIN = 0xFFE2, LENGTH = 0x0002
+  VECT51           : ORIGIN = 0xFFE4, LENGTH = 0x0002
+  VECT52           : ORIGIN = 0xFFE6, LENGTH = 0x0002
+  VECT53           : ORIGIN = 0xFFE8, LENGTH = 0x0002
+  VECT54           : ORIGIN = 0xFFEA, LENGTH = 0x0002
+  VECT55           : ORIGIN = 0xFFEC, LENGTH = 0x0002
+  VECT56           : ORIGIN = 0xFFEE, LENGTH = 0x0002
+  VECT57           : ORIGIN = 0xFFF0, LENGTH = 0x0002
+  VECT58           : ORIGIN = 0xFFF2, LENGTH = 0x0002
+  VECT59           : ORIGIN = 0xFFF4, LENGTH = 0x0002
+  VECT60           : ORIGIN = 0xFFF6, LENGTH = 0x0002
+  VECT61           : ORIGIN = 0xFFF8, LENGTH = 0x0002
+  VECT62           : ORIGIN = 0xFFFA, LENGTH = 0x0002
+  VECT63           : ORIGIN = 0xFFFC, LENGTH = 0x0002
   RESETVEC         : ORIGIN = 0xFFFE, LENGTH = 0x0002
 }
 
 SECTIONS
 {
-  .jtagsignature      : {} > JTAGSIGNATURE
-  .bslsignature       : {} > BSLSIGNATURE
   __interrupt_vector_1   : { KEEP (*(__interrupt_vector_1 )) } > VECT1
   __interrupt_vector_2   : { KEEP (*(__interrupt_vector_2 )) } > VECT2
   __interrupt_vector_3   : { KEEP (*(__interrupt_vector_3 )) } > VECT3
@@ -154,39 +158,50 @@ SECTIONS
   __interrupt_vector_39  : { KEEP (*(__interrupt_vector_39)) } > VECT39
   __interrupt_vector_40  : { KEEP (*(__interrupt_vector_40)) } > VECT40
   __interrupt_vector_41  : { KEEP (*(__interrupt_vector_41)) } > VECT41
-  __interrupt_vector_42  : { KEEP (*(__interrupt_vector_42)) KEEP (*(__interrupt_vector_port2)) } > VECT42
-  __interrupt_vector_43  : { KEEP (*(__interrupt_vector_43)) KEEP (*(__interrupt_vector_port1)) } > VECT43
-  __interrupt_vector_44  : { KEEP (*(__interrupt_vector_44)) KEEP (*(__interrupt_vector_adc)) } > VECT44
-  __interrupt_vector_45  : { KEEP (*(__interrupt_vector_45)) KEEP (*(__interrupt_vector_usci_b0)) } > VECT45
-  __interrupt_vector_46  : { KEEP (*(__interrupt_vector_46)) KEEP (*(__interrupt_vector_usci_a1)) } > VECT46
-  __interrupt_vector_47  : { KEEP (*(__interrupt_vector_47)) KEEP (*(__interrupt_vector_usci_a0)) } > VECT47
-  __interrupt_vector_48  : { KEEP (*(__interrupt_vector_48)) KEEP (*(__interrupt_vector_wdt)) } > VECT48
-  __interrupt_vector_49  : { KEEP (*(__interrupt_vector_49)) KEEP (*(__interrupt_vector_rtc)) } > VECT49
-  __interrupt_vector_50  : { KEEP (*(__interrupt_vector_50)) KEEP (*(__interrupt_vector_timer3_a1)) } > VECT50
-  __interrupt_vector_51  : { KEEP (*(__interrupt_vector_51)) KEEP (*(__interrupt_vector_timer3_a0)) } > VECT51
-  __interrupt_vector_52  : { KEEP (*(__interrupt_vector_52)) KEEP (*(__interrupt_vector_timer2_a1)) } > VECT52
-  __interrupt_vector_53  : { KEEP (*(__interrupt_vector_53)) KEEP (*(__interrupt_vector_timer2_a0)) } > VECT53
-  __interrupt_vector_54  : { KEEP (*(__interrupt_vector_54)) KEEP (*(__interrupt_vector_timer1_a1)) } > VECT54
-  __interrupt_vector_55  : { KEEP (*(__interrupt_vector_55)) KEEP (*(__interrupt_vector_timer1_a0)) } > VECT55
-  __interrupt_vector_56  : { KEEP (*(__interrupt_vector_56)) KEEP (*(__interrupt_vector_timer0_a1)) } > VECT56
-  __interrupt_vector_57  : { KEEP (*(__interrupt_vector_57)) KEEP (*(__interrupt_vector_timer0_a0)) } > VECT57
-  __interrupt_vector_58  : { KEEP (*(__interrupt_vector_58)) KEEP (*(__interrupt_vector_unmi)) } > VECT58
-  __interrupt_vector_59  : { KEEP (*(__interrupt_vector_59)) KEEP (*(__interrupt_vector_sysnmi)) } > VECT59
+  __interrupt_vector_42  : { KEEP (*(__interrupt_vector_42)) KEEP (*(__interrupt_vector_rtc)) } > VECT42
+  __interrupt_vector_43  : { KEEP (*(__interrupt_vector_43)) KEEP (*(__interrupt_vector_port2)) } > VECT43
+  __interrupt_vector_44  : { KEEP (*(__interrupt_vector_44)) KEEP (*(__interrupt_vector_timer2_a1)) } > VECT44
+  __interrupt_vector_45  : { KEEP (*(__interrupt_vector_45)) KEEP (*(__interrupt_vector_timer2_a0)) } > VECT45
+  __interrupt_vector_46  : { KEEP (*(__interrupt_vector_46)) KEEP (*(__interrupt_vector_usci_b1)) } > VECT46
+  __interrupt_vector_47  : { KEEP (*(__interrupt_vector_47)) KEEP (*(__interrupt_vector_usci_a1)) } > VECT47
+  __interrupt_vector_48  : { KEEP (*(__interrupt_vector_48)) KEEP (*(__interrupt_vector_port1)) } > VECT48
+  __interrupt_vector_49  : { KEEP (*(__interrupt_vector_49)) KEEP (*(__interrupt_vector_timer1_a1)) } > VECT49
+  __interrupt_vector_50  : { KEEP (*(__interrupt_vector_50)) KEEP (*(__interrupt_vector_timer1_a0)) } > VECT50
+  __interrupt_vector_51  : { KEEP (*(__interrupt_vector_51)) KEEP (*(__interrupt_vector_dma)) } > VECT51
+  __interrupt_vector_52  : { KEEP (*(__interrupt_vector_52)) KEEP (*(__interrupt_vector_usb_ubm)) } > VECT52
+  __interrupt_vector_53  : { KEEP (*(__interrupt_vector_53)) KEEP (*(__interrupt_vector_timer0_a1)) } > VECT53
+  __interrupt_vector_54  : { KEEP (*(__interrupt_vector_54)) KEEP (*(__interrupt_vector_timer0_a0)) } > VECT54
+  __interrupt_vector_55  : { KEEP (*(__interrupt_vector_55)) KEEP (*(__interrupt_vector_adc12)) } > VECT55
+  __interrupt_vector_56  : { KEEP (*(__interrupt_vector_56)) KEEP (*(__interrupt_vector_usci_b0)) } > VECT56
+  __interrupt_vector_57  : { KEEP (*(__interrupt_vector_57)) KEEP (*(__interrupt_vector_usci_a0)) } > VECT57
+  __interrupt_vector_58  : { KEEP (*(__interrupt_vector_58)) KEEP (*(__interrupt_vector_wdt)) } > VECT58
+  __interrupt_vector_59  : { KEEP (*(__interrupt_vector_59)) KEEP (*(__interrupt_vector_timer0_b1)) } > VECT59
+  __interrupt_vector_60  : { KEEP (*(__interrupt_vector_60)) KEEP (*(__interrupt_vector_timer0_b0)) } > VECT60
+  __interrupt_vector_61  : { KEEP (*(__interrupt_vector_61)) KEEP (*(__interrupt_vector_comp_b)) } > VECT61
+  __interrupt_vector_62  : { KEEP (*(__interrupt_vector_62)) KEEP (*(__interrupt_vector_unmi)) } > VECT62
+  __interrupt_vector_63  : { KEEP (*(__interrupt_vector_63)) KEEP (*(__interrupt_vector_sysnmi)) } > VECT63
   __reset_vector :
   {
-    KEEP (*(__interrupt_vector_60))
+    KEEP (*(__interrupt_vector_64))
     KEEP (*(__interrupt_vector_reset))
     KEEP (*(.resetvec))
   } > RESETVEC
+
+  .lower.rodata :
+  {
+    . = ALIGN(2);
+    *(.lower.rodata.* .lower.rodata)
+  } > ROM
 
   .rodata :
   {
     . = ALIGN(2);
     *(.plt)
+    . = ALIGN(2);
     *(.rodata .rodata.* .gnu.linkonce.r.* .const .const:*)
     *(.rodata1)
     KEEP (*(.gcc_except_table)) *(.gcc_except_table.*)
-  } > FRAM
+  } > ROM
 
   /* Note: This is a separate .rodata section for sections which are
      read only but which older linkers treat as read-write.
@@ -232,56 +247,28 @@ SECTIONS
     KEEP (*(EXCLUDE_FILE (*crtend*.o ) .dtors))
     KEEP (*(SORT(.dtors.*)))
     KEEP (*(.dtors))
-  } > FRAM
+  } > ROM
 
-
-  /* This section contains data that is initialised during load
-     but not on application reset.  */
-  .persistent :
+  .upper.rodata :
   {
-    . = ALIGN(2);
-    PROVIDE (__persistent_start = .);
-    *(.persistent)
-    . = ALIGN(2);
-    PROVIDE (__persistent_end = .);
-  } > FRAM
-
-  /* This section contains data that is initialised during load
-     but not on application reset.  */
-  .nvm :
-  {
-    . = ALIGN(2);
-    PROVIDE (__nvm_start = .);
-  } > NVMRAM
-
-  .text :
-  {
-    . = ALIGN(2);
-    PROVIDE (_start = .);
-    KEEP (*(SORT(.crt_*)))
-    *(.lowtext .text .stub .text.* .gnu.linkonce.t.* .text:*)
-    KEEP (*(.text.*personality*))
-    /* .gnu.warning sections are handled specially by elf32.em.  */
-    *(.gnu.warning)
-    *(.interp .hash .dynsym .dynstr .gnu.version*)
-    PROVIDE (__etext = .);
-    PROVIDE (_etext = .);
-    PROVIDE (etext = .);
-    . = ALIGN(2);
-    KEEP (*(.init))
-    KEEP (*(.fini))
-    KEEP (*(.tm_clone_table))
-  } > FRAM
+    *(.upper.rodata.* .upper.rodata)
+  } > HIROM
 
   .data :
   {
     . = ALIGN(2);
     PROVIDE (__datastart = .);
+    *(.lower.data.* .lower.data)
 
+    . = ALIGN(2);
+    *(.either.data.* .either.data)
+
+    . = ALIGN(2);
     KEEP (*(.jcr))
     *(.data.rel.ro.local) *(.data.rel.ro*)
     *(.dynamic)
 
+    . = ALIGN(2);
     *(.data .data.* .gnu.linkonce.d.*)
     KEEP (*(.gnu.linkonce.d.*personality*))
     SORT(CONSTRUCTORS)
@@ -295,22 +282,23 @@ SECTIONS
     *(.sdata .sdata.* .gnu.linkonce.s.* D_2 D_1)
 
     . = ALIGN(2);
-
     _edata = .;
     PROVIDE (edata = .);
     PROVIDE (__dataend = .);
-  } > RAM AT> FRAM
+  } > RAM AT> ROM
 
   /* Note that crt0 assumes this is a multiple of two; all the
      start/stop symbols are also assumed word-aligned.  */
   PROVIDE(__romdatastart = LOADADDR(.data));
   PROVIDE (__romdatacopysize = SIZEOF(.data));
 
-
   .bss :
   {
     . = ALIGN(2);
     PROVIDE (__bssstart = .);
+    *(.lower.bss.* .lower.bss)
+    . = ALIGN(2);
+    *(.either.bss.* .either.bss)
     *(.dynbss)
     *(.sbss .sbss.*)
     *(.bss .bss.* .gnu.linkonce.b.*)
@@ -319,7 +307,6 @@ SECTIONS
     PROVIDE (__bssend = .);
   } > RAM
   PROVIDE (__bsssize = SIZEOF(.bss));
-
 
   /* This section contains data that is not initialised during load
      or application reset.  */
@@ -330,7 +317,6 @@ SECTIONS
     *(.noinit)
     . = ALIGN(2);
     PROVIDE (__noinit_end = .);
-    end = .;
   } > RAM
 
   /* We create this section so that "end" will always be in the
@@ -362,7 +348,57 @@ SECTIONS
     *(.stack)
   }
 
-  .infoA (NOLOAD) : {} > INFOA              /* MSP430 INFO FLASH MEMORY SEGMENTS */
+  /* This is just for crt0.S and interrupt handlers.  */
+  .lowtext           :
+  {
+    PROVIDE (_start = .);
+    . = ALIGN(2);
+    KEEP (*(SORT(.crt_*)))
+    KEEP (*(.lowtext))
+  } > ROM
+
+  .lower.text :
+  {
+    . = ALIGN(2);
+    *(.lower.text.* .lower.text)
+  } > ROM
+
+  .text :
+  {
+    . = ALIGN(2);
+    *(.text .stub .text.* .gnu.linkonce.t.* .text:*)
+
+    KEEP (*(.text.*personality*))
+    /* .gnu.warning sections are handled specially by elf32.em.  */
+    *(.gnu.warning)
+    *(.interp .hash .dynsym .dynstr .gnu.version*)
+    PROVIDE (__etext = .);
+    PROVIDE (_etext = .);
+    PROVIDE (etext = .);
+    . = ALIGN(2);
+    KEEP (*(.init))
+    KEEP (*(.fini))
+    KEEP (*(.tm_clone_table))
+  } > ROM
+
+  .upper.text :
+  {
+    . = ALIGN(2);
+    *(.upper.text.* .upper.text)
+  } > HIROM
+
+  .infoA     : {} > INFOA              /* MSP430 INFO FLASH MEMORY SEGMENTS */
+  .infoB     : {} > INFOB
+  .infoC     : {} > INFOC
+  .infoD     : {} > INFOD
+
+  /* Make sure that upper data sections are not used.  */
+  .upper :
+  {
+    *(.upper.bss.* .upper.bss)
+    *(.upper.data.* .upper.data)
+    ASSERT (SIZEOF(.upper) == 0, "This MCU does not support placing read/write data into high memory");
+  } > HIROM
 
   /* The rest are all not normally part of the runtime image.  */
 
@@ -420,5 +456,5 @@ SECTIONS
 /* Include peripherals memory map                                           */
 /****************************************************************************/
 
-INCLUDE msp430fr2433_symbols.ld
+INCLUDE msp430f5529_symbols.ld
 

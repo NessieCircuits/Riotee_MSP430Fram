@@ -5,17 +5,16 @@ OUTPUT_DIR := _build
 SRC_DIR := src
 LINKER_SCRIPT:= linker.ld
 
-DEVICE  = MSP430FR2433
+DEVICE  = MSP430F5529
 
 CSRC_FILES += \
   main.c \
-  uart.c \
-  printf.c
+  uart.c
 
-ASM_FILES += \
-  spiloop.s
+ASM_FILES = \
+  transfer.S
 
-OBJ_FILES = $(CSRC_FILES:.c=.o) $(ASM_FILES:.s=.o)
+OBJ_FILES = $(CSRC_FILES:.c=.o) $(ASM_FILES:.S=.o)
 
 INC_FOLDERS += \
 	$(SUPPORT_FILE_DIRECTORY) \
@@ -42,7 +41,7 @@ ${OUTPUT_DIR}/%.o: ${SRC_DIR}/%.c
 	${PREFIX}gcc ${CFLAGS} -c $< -o $@
 	@echo "CC $<"
 
-${OUTPUT_DIR}/%.o: ${SRC_DIR}/%.s
+${OUTPUT_DIR}/%.o: ${SRC_DIR}/%.S
 	${PREFIX}gcc ${CFLAGS} -c $< -o $@
 	@echo "AS $<"
 
