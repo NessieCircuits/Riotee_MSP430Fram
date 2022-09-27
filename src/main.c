@@ -73,8 +73,7 @@ void delay_cycles(long unsigned int cycles) {
     __no_operation();
 }
 
-extern __int20__ cs_handler(uint8_t *data_buf);
-volatile uint32_t result;
+extern void cs_handler(uint8_t *data_buf);
 
 static uint8_t data_buf[1024] = {0};
 
@@ -85,6 +84,9 @@ int main(void) {
 
   /* Apply the GPIO configuration */
   PM5CTL0 &= ~LOCKLPM5;
+
+  /* Use password and add wait states */
+  FRCTL0 = FRCTLPW | NWAITS_1;
 
   /* Unlock clock system registers */
   CSCTL0 = 0xA5 << 8;
@@ -104,10 +106,14 @@ int main(void) {
   P4DIR |= BIT1 | BIT2;
   P4OUT &= ~(BIT1 | BIT2);
 
+  uint16_t *myptr = (uint16_t *)0x0001DEAD;
+  *myptr = 0xBEEF;
+
   uart_init();
   spi_init();
 
   _putchar('$');
+  printf("%02X", *myptr);
 
   /* Clear interrupt flags */
   P5IFG &= ~BIT3;
@@ -120,14 +126,14 @@ int main(void) {
     P4OUT ^= BIT1;
     if (tfrequest) {
 
-      result = cs_handler(data_buf);
+      cs_handler((uint8_t *)0x00010000);
 
       /* Wait for CS high */
       while ((P5IN & BIT3) == 0) {
       };
 
       for (unsigned int i = 0xDE; i < 0xDE + 255; i++) {
-        _putchar(data_buf[i]);
+        _putchar(*((uint8_t *)0x00010000 + i));
       }
 
       /* Reset DMA channels */

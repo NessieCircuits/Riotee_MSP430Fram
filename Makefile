@@ -9,6 +9,7 @@ DEVICE  = MSP430FR5994
 
 CSRC_FILES += \
   uart.c \
+  printf.c \
   main.c
 
 ASM_FILES = \
@@ -26,7 +27,7 @@ CFLAGS += -O0 -g3
 CFLAGS += ${INCLUDES}
 CFLAGS += -Wall
 CFLAGS += -mlarge
-CFLAGS += -mcode-region=either
+CFLAGS += -mcode-region=lower
 CFLAGS += -mdata-region=lower
 CFLAGS += -mmcu=$(DEVICE)
 

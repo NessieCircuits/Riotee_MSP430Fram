@@ -14,9 +14,8 @@
 .global cs_handler
 
 cs_handler:
-    push r4-r5
+    push r4
     sub #4, SP; make room for 3B command buffer
-
     mova SP,&DMA2DA; point DMA2 to command buffer on stack
     bic.b #UCRXIFG,&UCA0IFG; Clear RX interrupt
     bis.w #DMAEN,&DMA2CTL; Enable DMA2
@@ -25,15 +24,12 @@ cs_handler:
     bit.w #DMAIFG,&DMA2CTL; DMA interrupt?
     jz $-4
     bic.w #DMAIFG,&DMA2CTL; clear DMA interrupt
-    bic.b #BIT2,&P4OUT; set pin low
 
     mova @SP, r4; move received data into r4
     adda r12, r4; add base buffer address
     bit.b #0x80,2(SP); test for R/W bit (first byte on stack)
     jz read
 write:
-    bis.b #BIT2,&P4OUT; set pin high
-    bic.b #BIT2,&P4OUT; set pin low
     mova r4, &DMA0DA; destination is requested address
     bic.b #UCRXIFG,&UCA0IFG; Clear RX interrupt
     bis.w #DMAEN,&DMA0CTL; Enable DMA0
@@ -47,7 +43,7 @@ handler_end:
     bic.b #BIT2,&P4OUT; set pin low
     mova r4, r12
     add #4, SP
-    pop r4-r5
+    pop r4
     ret
 
 .end
