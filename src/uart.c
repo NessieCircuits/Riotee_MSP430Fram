@@ -2,34 +2,34 @@
 #include "printf.h"
 
 #include <msp430.h>
-#include <msp430f5529.h>
+#include <msp430fr5994.h>
 
 int uart_init() {
-  // Configure UART pins
-  P4SEL |= BIT4 | BIT5; // set 2-UART pin as second function
-
+  // Configure UART TX pin
+  P6SEL0 |= BIT0;
+  P6SEL1 &= ~BIT0;
   /* Hold in reset state */
-  UCA1CTL1 = UCSWRST;
+  UCA3CTLW0 = UCSWRST;
 
   /* Configure for standard UART operation */
-  UCA1CTL0 = 0;
+  UCA3CTLW0 = 0;
 
-  UCA1CTL1 |= UCSSEL__ACLK;
+  /* 16MHz clock */
+  UCA3CTLW0 |= UCSSEL__SMCLK;
 
-  /* This should generate 32768 baudrate */
-  UCA1BR0 = 0x01;
-  UCA1BR1 = 0x00;
-  UCA1MCTL = 0;
+  /* This should generate 115200 baudrate */
+  UCA3BRW = 8;
+  UCA3MCTLW = UCOS16_1 | (10 << 4) | (0xF7 << 8);
 
   /* Release */
-  UCA1CTL1 &= ~UCSWRST;
+  UCA3CTLW0 &= ~UCSWRST;
   return 0;
 }
 
 void _putchar(char c) {
-  while (!(UCA1IFG & UCTXIFG)) {
+  while (!(UCA3IFG & UCTXIFG)) {
   };
-  UCA1TXBUF = c;
+  UCA3TXBUF = c;
 }
 
 int uart_puts(char *buf) {

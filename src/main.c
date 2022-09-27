@@ -1,5 +1,5 @@
 #include <msp430.h>
-#include <msp430f5529.h>
+#include <msp430fr5994.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -7,39 +7,41 @@
 #include "uart.h"
 
 void spi_init() {
-  /* Configure MOSI, MISO and CLK pins (primary function) */
-  P3SEL |= BIT3 | BIT4;
-  P2SEL |= BIT7;
+
+  /* UCA0CLK on P1.5 */
+  P1SEL0 &= ~BIT5;
+  P1SEL1 |= BIT5;
+
+  /* UCA0MOSI on P2.0 and UCA0MISO on P2.1 */
+  P2SEL0 &= ~(BIT0 | BIT1);
+  P2SEL1 |= (BIT0 | BIT1);
 
   /* Input direction for CS */
-  P1DIR &= ~BIT2;
+  P5DIR &= ~BIT3;
   /* Enable pullup */
-  P1REN |= BIT2;
-  P1OUT |= BIT2;
-  /* Configure falling edge */
-  P1IES |= BIT2;
-  /* Clear interrupt */
-  P1IFG = 0;
+  P5REN |= BIT3;
+  P5OUT |= BIT3;
   /* Enable interrupt */
-  P1IE |= BIT2;
+  P5IE |= BIT3;
+  /* Configure falling edge */
+  P5IES |= BIT3;
 
   /* Put to reset */
-  UCA0CTL1 |= UCSWRST;
+  UCA0CTLW0 |= UCSWRST;
   /* Configure */
-  UCA0CTL0 = UCMSB | UCSYNC | UCMODE_0;
+  UCA0CTLW0 = UCMSB | UCSYNC | UCMODE_0;
   /* Release reset */
-  UCA0CTL1 &= ~UCSWRST;
-
-  /* Enable USCI1 RX interrupt */
-  // UCB0IE |= UCRXIE;
+  UCA0CTLW0 &= ~UCSWRST;
 }
 
 void dma_init(void) {
 
+  DMA2CTL &= ~DMAEN;
+
   /* DMA2 reads the first three command bytes into memory */
   DMA2CTL = DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0;
   /* trigger 16 is USCIA0RXIFG*/
-  DMACTL1 |= DMA2TSEL_16;
+  DMACTL1 |= DMA2TSEL_14;
   DMA2SA = (uint16_t)&UCA0RXBUF;
   DMA2SZ = 3;
 
@@ -47,25 +49,23 @@ void dma_init(void) {
   DMA0SZ = 0xFFFF;
   DMA0CTL &= ~DMAEN;
   DMA0CTL = (DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0);
-  DMACTL0 |= DMA0TSEL_16;
+  DMACTL0 |= DMA0TSEL_14;
   DMA0SA = (uint32_t)&UCA0RXBUF;
 
   /* DMA1 handles 'reads' requests by shoveling data out of memory */
   DMA1SZ = 0xFFFF;
   DMA1CTL &= ~DMAEN;
   DMA1CTL = (DMASRCBYTE | DMADSTBYTE | DMASRCINCR_3 | DMADT_0);
-  DMACTL0 |= DMA1TSEL_17;
+  DMACTL0 |= DMA1TSEL_15;
   DMA1DA = (uint32_t)&UCA0TXBUF;
 }
 
 static volatile bool tfrequest = false;
 
-__attribute__((interrupt(PORT1_VECTOR))) void PORT1_ISR(void) {
+__attribute__((interrupt(PORT5_VECTOR))) void PORT5_ISR(void) {
+  P5IFG &= ~BIT3;
 
-  if (P1IFG & BIT2) {
-    P1IFG &= ~BIT2;
-    tfrequest = true;
-  }
+  tfrequest = true;
 }
 
 void delay_cycles(long unsigned int cycles) {
@@ -73,7 +73,8 @@ void delay_cycles(long unsigned int cycles) {
     __no_operation();
 }
 
-extern void cs_handler(uint8_t *data_buf);
+extern __int20__ cs_handler(uint8_t *data_buf);
+volatile uint32_t result;
 
 static uint8_t data_buf[1024] = {0};
 
@@ -82,49 +83,50 @@ int main(void) {
   /* Stop watchdog timer */
   WDTCTL = WDTPW | WDTHOLD;
 
-  /* Disable FLL */
-  __bis_SR_register(SCG0);
+  /* Apply the GPIO configuration */
+  PM5CTL0 &= ~LOCKLPM5;
 
-  /* Set DCO val and frequency range to f_DCO(7,0) [datasheet tab. 8.19] */
-  UCSCTL1 = DCORSEL_4;
-  UCSCTL0 = (28 << 8);
+  /* Unlock clock system registers */
+  CSCTL0 = 0xA5 << 8;
 
-  /* Derive SMCLK from DCOCLK directly */
-  UCSCTL4 = SELM__DCOCLK | SELS__DCOCLK | SELA__XT1CLK;
+  /* Set to 16MHz */
+  CSCTL1 = (DCORSEL | DCOFSEL_4);
 
-  /* This pin shall output ACLK */
-  P1DIR |= BIT0;
-  P1SEL |= BIT0;
+  /* No divider */
+  CSCTL3 = DIVS_0 | DIVM_0 | DIVA_0;
+
+  CSCTL2 = SELM__DCOCLK | SELS__DCOCLK | SELA__LFXTCLK;
 
   /* This pin shall output SMCLK */
-  P2DIR |= BIT2;
-  P2SEL |= BIT2;
+  P3DIR |= BIT4;
+  P3SEL1 |= BIT4;
 
-  /* Set to output direction */
-  P2DIR |= BIT0;
-  P4DIR |= BIT1;
-
-  /* Apply the GPIO configuration */
-  // PM5CTL0 &= ~LOCKLPM5;
+  P4DIR |= BIT1 | BIT2;
+  P4OUT &= ~(BIT1 | BIT2);
 
   uart_init();
-  _putchar('!');
-
   spi_init();
-  dma_init();
+
+  _putchar('$');
+
+  /* Clear interrupt flags */
+  P5IFG &= ~BIT3;
+  /* Enable interrupts */
   __bis_SR_register(GIE);
 
+  dma_init();
+
   while (1) {
-    P2OUT ^= BIT0;
+    P4OUT ^= BIT1;
     if (tfrequest) {
 
-      cs_handler(data_buf);
+      result = cs_handler(data_buf);
 
       /* Wait for CS high */
-      while ((P1IN & BIT2) == 0) {
+      while ((P5IN & BIT3) == 0) {
       };
 
-      for (unsigned int i = 255; i < 255 + 255; i++) {
+      for (unsigned int i = 0xDE; i < 0xDE + 255; i++) {
         _putchar(data_buf[i]);
       }
 
@@ -134,10 +136,11 @@ int main(void) {
       DMA2CTL &= ~DMAEN;
       DMA0SZ = 0xFFFF;
       DMA1SZ = 0xFFFF;
+      DMA2SZ = 3;
 
       /* Reset SPI */
-      UCA0CTL1 |= UCSWRST;
-      UCA0CTL1 &= ~UCSWRST;
+      UCA0CTLW0 |= UCSWRST;
+      UCA0CTLW0 &= ~UCSWRST;
 
       tfrequest = false;
     }

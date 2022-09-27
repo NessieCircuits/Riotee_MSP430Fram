@@ -5,11 +5,11 @@ OUTPUT_DIR := _build
 SRC_DIR := src
 LINKER_SCRIPT:= linker.ld
 
-DEVICE  = MSP430F5529
+DEVICE  = MSP430FR5994
 
 CSRC_FILES += \
-  main.c \
-  uart.c
+  uart.c \
+  main.c
 
 ASM_FILES = \
   transfer.S
@@ -22,10 +22,12 @@ INC_FOLDERS += \
 
 INCLUDES = $(INC_FOLDERS:%=-I%)
 
-CFLAGS += -Og -g
+CFLAGS += -O0 -g3
 CFLAGS += ${INCLUDES}
 CFLAGS += -Wall
 CFLAGS += -mlarge
+CFLAGS += -mcode-region=either
+CFLAGS += -mdata-region=lower
 CFLAGS += -mmcu=$(DEVICE)
 
 LDFLAGS += ${CFLAGS}
