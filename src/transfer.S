@@ -10,7 +10,6 @@
 
 .section .text
 
-
 .global cs_handler
 
 cs_handler:
@@ -44,6 +43,6 @@ handler_end:
     mova r4, r12
     add #4, SP
     pop r4
-    ret
+    reta
 
 .end
