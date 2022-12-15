@@ -6,84 +6,125 @@
 #include "printf.h"
 #include "uart.h"
 
-void spi_init() {
+/*
 
-  /* UCA0CLK on P1.5 */
-  P1SEL0 &= ~BIT5;
-  P1SEL1 |= BIT5;
+LPM4: 600nA (SVS), 400nA (no SVS), wakeup time <10us
+LPM4.5: 250nA (SVS), 45 nA (no SVS), wakeup time 250us (SVS), 400us (no SVS)
 
-  /* UCA0MOSI on P2.0 and UCA0MISO on P2.1 */
-  P2SEL0 &= ~(BIT0 | BIT1);
-  P2SEL1 |= (BIT0 | BIT1);
-
-  /* Input direction for CS */
-  P5DIR &= ~BIT3;
-  /* Enable pullup */
-  P5REN |= BIT3;
-  P5OUT |= BIT3;
-  /* Enable interrupt */
-  P5IE |= BIT3;
-  /* Configure falling edge */
-  P5IES |= BIT3;
-
-  /* Put to reset */
-  UCA0CTLW0 |= UCSWRST;
-  /* Configure */
-  UCA0CTLW0 = UCMSB | UCSYNC | UCMODE_0;
-  /* Release reset */
-  UCA0CTLW0 &= ~UCSWRST;
-}
-
-void dma_init(void) {
-
-  DMA2CTL &= ~DMAEN;
-
-  /* DMA2 reads the first three command bytes into memory */
-  DMA2CTL = DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0;
-  /* trigger 16 is USCIA0RXIFG*/
-  DMACTL1 |= DMA2TSEL_14;
-  DMA2SA = (uint16_t)&UCA0RXBUF;
-  DMA2SZ = 3;
-
-  /* DMA0 handles 'write' requests by shoveling data into memory */
-  DMA0SZ = 0xFFFF;
-  DMA0CTL &= ~DMAEN;
-  DMA0CTL = (DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0);
-  DMACTL0 |= DMA0TSEL_14;
-  DMA0SA = (uint32_t)&UCA0RXBUF;
-
-  /* DMA1 handles 'reads' requests by shoveling data out of memory */
-  DMA1SZ = 0xFFFF;
-  DMA1CTL &= ~DMAEN;
-  DMA1CTL = (DMASRCBYTE | DMADSTBYTE | DMASRCINCR_3 | DMADT_0);
-  DMACTL0 |= DMA1TSEL_15;
-  DMA1DA = (uint32_t)&UCA0TXBUF;
-}
-
-static volatile bool tfrequest = false;
-
-__attribute__((interrupt(PORT5_VECTOR))) void PORT5_ISR(void) {
-  P5IFG &= ~BIT3;
-
-  tfrequest = true;
-}
+*/
 
 void delay_cycles(long unsigned int cycles) {
   for (long unsigned int i = 0; i < cycles; i++)
     __no_operation();
 }
 
-extern void cs_handler(uint8_t *data_buf);
+void spi_init() {
+  /* Put to reset */
+  UCA3CTLW0 |= UCSWRST;
 
-static uint8_t data_buf[1024] = {0};
+  /* Configure for 3-pin SPI slave */
+  UCA3CTLW0 = UCCKPH | UCMSB | UCSYNC | UCMODE_0;
+
+  /* UCA3CLK on P6.2 */
+  P6SEL1 &= ~BIT2;
+  P6SEL0 |= BIT2;
+
+  /* UCA3MOSI on P6.0 and UCA3MISO on P6.1 */
+  P6SEL0 |= (BIT0 | BIT1);
+  P6SEL1 &= ~(BIT0 | BIT1);
+
+  /* Release reset */
+  UCA3CTLW0 &= ~UCSWRST;
+}
+
+void dma_init(void) {
+  /* Reset DMA channels */
+  DMA3CTL &= ~DMAEN;
+  DMA4CTL &= ~DMAEN;
+  DMA5CTL &= ~DMAEN;
+
+  /* DMA3 reads the first three command bytes into memory */
+  DMA3CTL = DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0;
+  /* trigger 16 is USCIA0RXIFG*/
+  DMACTL1 |= DMA3TSEL_16;
+  DMA3SA = (uint16_t)&UCA3RXBUF;
+  DMA3SZ = 3;
+
+  /* DMA4 handles 'write' requests by shoveling data into memory */
+  DMA4SZ = 0xFFFF;
+  DMA4CTL &= ~DMAEN;
+  DMA4CTL = (DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0);
+  DMACTL2 |= DMA4TSEL_16;
+  DMA4SA = (uint32_t)&UCA3RXBUF;
+
+  /* DMA5 handles 'read' requests by shoveling data out of memory */
+  DMA5SZ = 0xFFFF;
+  DMA5CTL &= ~DMAEN;
+  DMA5CTL = (DMASRCBYTE | DMADSTBYTE | DMASRCINCR_3 | DMADT_0);
+  DMACTL2 |= DMA5TSEL_17;
+  DMA5DA = (uint32_t)&UCA3TXBUF;
+}
+
+extern __int20__ cs_handler(uint8_t *data_buf);
+
+__attribute__((interrupt(PORT6_VECTOR))) void PORT6_ISR(void) {
+  P6IFG &= ~BIT3;
+  LPM4_EXIT;
+}
 
 int main(void) {
 
-  /* Stop watchdog timer */
-  WDTCTL = WDTPW | WDTHOLD;
+  /* Stop watchdog */
+  WDTCTL = WDTPW | WDTHOLD | WDTCNTCL;
 
   /* Apply the GPIO configuration */
   PM5CTL0 &= ~LOCKLPM5;
+
+  // Configure GPIO
+  P1OUT = 0;
+  P1DIR = 0xFF;
+  P1SEL0 = 0x0;
+  P1SEL1 = 0x0;
+
+  P2OUT = 0;
+  P2DIR = 0xFF;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  P3OUT = 0;
+  P3DIR = 0xFF;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  P4OUT = 0;
+  P4DIR = 0xFF;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  P5OUT = 0;
+  P5DIR = 0xFF;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  P6DIR = ~(BIT0 | BIT2 | BIT3);
+  P6OUT = 0;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  P7OUT = 0;
+  P7DIR = 0xFF;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  P8OUT = 0;
+  P8DIR = 0xFF;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  PJOUT = 0;
+  PJDIR = 0xFFFF;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
 
   /* Use password and add wait states */
   FRCTL0 = FRCTLPW | NWAITS_1;
@@ -99,56 +140,64 @@ int main(void) {
 
   CSCTL2 = SELM__DCOCLK | SELS__DCOCLK | SELA__LFXTCLK;
 
-  /* This pin shall output SMCLK */
-  P3DIR |= BIT4;
-  P3SEL1 |= BIT4;
+  /* Clear pending interrupt */
+  P6IFG &= ~BIT3;
+  /* Input direction for CS */
+  P6DIR &= ~BIT3;
+  /* Enable interrupt */
+  P6IE |= BIT3;
+  /* Configure rising edge interrupt */
+  P6IES &= ~BIT3;
 
-  P4DIR |= BIT1 | BIT2;
-  P4OUT &= ~(BIT1 | BIT2);
+  /* Wait in LPM4 until CS is high */
+  __bis_SR_register(GIE + LPM4_bits);
 
-  uint16_t *myptr = (uint16_t *)0x0001DEAD;
-  *myptr = 0xBEEF;
-
-  uart_init();
+  // uart_init();
   spi_init();
-
-  _putchar('$');
-  printf("%02X", *myptr);
-
-  /* Clear interrupt flags */
-  P5IFG &= ~BIT3;
-  /* Enable interrupts */
-  __bis_SR_register(GIE);
-
   dma_init();
 
+  P4DIR |= BIT1 | BIT2;
+  P4OUT |= BIT2;
+  P4OUT &= ~BIT2;
+
+  volatile __int20__ tmp;
+
   while (1) {
-    P4OUT ^= BIT1;
-    if (tfrequest) {
+    /* Configure falling edge */
+    P6IES |= BIT3;
+    /* Clear pending interrupt */
+    P6IFG &= ~BIT3;
 
-      cs_handler((uint8_t *)0x00010000);
+    /* Stop watchdog */
+    WDTCTL = WDTPW | WDTHOLD;
 
-      /* Wait for CS high */
-      while ((P5IN & BIT3) == 0) {
-      };
+    /* Go into LPM4 and wakeup on GPIO edge */
+    __bis_SR_register(LPM4_bits);
 
-      for (unsigned int i = 0xDE; i < 0xDE + 255; i++) {
-        _putchar(*((uint8_t *)0x00010000 + i));
-      }
+    /* Start watchdog with 250ms period */
+    WDTCTL = WDTPW | WDTCNTCL | WDTSSEL__ACLK | WDTIS_5;
 
-      /* Reset DMA channels */
-      DMA0CTL &= ~DMAEN;
-      DMA1CTL &= ~DMAEN;
-      DMA2CTL &= ~DMAEN;
-      DMA0SZ = 0xFFFF;
-      DMA1SZ = 0xFFFF;
-      DMA2SZ = 3;
+    tmp = cs_handler((uint8_t *)0x10000);
 
-      /* Reset SPI */
-      UCA0CTLW0 |= UCSWRST;
-      UCA0CTLW0 &= ~UCSWRST;
+    /* Configure rising edge interrupt */
+    P6IES &= ~BIT3;
+    /* Clear pending interrupt */
+    P6IFG &= ~BIT3;
 
-      tfrequest = false;
-    }
+    /* Go into LPM0 to still allow DMA to move data */
+    __bis_SR_register(LPM0_bits);
+    /* Reset DMA channels */
+    DMA3CTL &= ~DMAEN;
+    DMA4CTL &= ~DMAEN;
+    DMA5CTL &= ~DMAEN;
+
+    DMA4SZ = 0xFFFF;
+    DMA5SZ = 0xFFFF;
+    DMA3SZ = 3;
+
+    /* Reset SPI */
+    UCA3CTLW0 |= UCSWRST;
+    UCA3TXBUF = 0x0;
+    UCA3CTLW0 &= ~UCSWRST;
   };
 }
