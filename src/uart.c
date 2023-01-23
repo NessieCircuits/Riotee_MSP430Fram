@@ -6,30 +6,30 @@
 
 int uart_init() {
   // Configure UART TX pin
-  P6SEL0 |= BIT0;
-  P6SEL1 &= ~BIT0;
+  P2SEL1 |= BIT5;
+  P2SEL0 &= ~BIT5;
   /* Hold in reset state */
-  UCA3CTLW0 = UCSWRST;
+  UCA1CTLW0 = UCSWRST;
 
   /* Configure for standard UART operation */
-  UCA3CTLW0 = 0;
+  UCA1CTLW0 = 0;
 
   /* 16MHz clock */
-  UCA3CTLW0 |= UCSSEL__SMCLK;
+  UCA1CTLW0 |= UCSSEL__SMCLK;
 
   /* This should generate 115200 baudrate */
-  UCA3BRW = 8;
-  UCA3MCTLW = UCOS16_1 | (10 << 4) | (0xF7 << 8);
+  UCA1BRW = 8;
+  UCA1MCTLW = UCOS16_1 | (10 << 4) | (0xF7 << 8);
 
   /* Release */
-  UCA3CTLW0 &= ~UCSWRST;
+  UCA1CTLW0 &= ~UCSWRST;
   return 0;
 }
 
 void _putchar(char c) {
-  while (!(UCA3IFG & UCTXIFG)) {
+  while (!(UCA1IFG & UCTXIFG)) {
   };
-  UCA3TXBUF = c;
+  UCA1TXBUF = c;
 }
 
 int uart_puts(char *buf) {

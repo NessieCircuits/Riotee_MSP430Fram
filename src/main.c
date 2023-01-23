@@ -20,55 +20,53 @@ void delay_cycles(long unsigned int cycles) {
 
 void spi_init() {
   /* Put to reset */
-  UCA3CTLW0 |= UCSWRST;
+  UCA0CTLW0 |= UCSWRST;
 
   /* Configure for 3-pin SPI slave */
-  UCA3CTLW0 = UCCKPH | UCMSB | UCSYNC | UCMODE_0;
+  UCA0CTLW0 = UCCKPH | UCMSB | UCSYNC | UCMODE_0;
 
-  /* UCA3CLK on P6.2 */
-  P6SEL1 &= ~BIT2;
-  P6SEL0 |= BIT2;
+  /* UCA0CLK on P1.5 */
+  P1SEL0 &= ~BIT5;
+  P1SEL1 |= BIT5;
 
-  /* UCA3MOSI on P6.0 and UCA3MISO on P6.1 */
-  P6SEL0 |= (BIT0 | BIT1);
-  P6SEL1 &= ~(BIT0 | BIT1);
+  /* UCA0MOSI on P2.0 and UCA0MISO on P2.1 */
+  P2SEL0 &= ~(BIT0 | BIT1);
+  P2SEL1 |= (BIT0 | BIT1);
 
   /* Release reset */
-  UCA3CTLW0 &= ~UCSWRST;
+  UCA0CTLW0 &= ~UCSWRST;
 }
 
 void dma_init(void) {
   /* Reset DMA channels */
-  DMA3CTL &= ~DMAEN;
-  DMA4CTL &= ~DMAEN;
-  DMA5CTL &= ~DMAEN;
+  DMA0CTL &= ~DMAEN;
+  DMA1CTL &= ~DMAEN;
+  DMA2CTL &= ~DMAEN;
 
-  /* DMA3 reads the first three command bytes into memory */
-  DMA3CTL = DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0;
-  /* trigger 16 is USCIA0RXIFG*/
-  DMACTL1 |= DMA3TSEL_16;
-  DMA3SA = (uint16_t)&UCA3RXBUF;
-  DMA3SZ = 3;
+  /* DMA0 reads the first three command bytes into memory */
+  DMA0CTL = DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0;
+  /* trigger 14 is USCIA0RXIFG*/
+  DMACTL0 |= DMA0TSEL_14;
+  DMA0SA = (uint16_t)&UCA0RXBUF;
+  DMA0SZ = 3;
 
-  /* DMA4 handles 'write' requests by shoveling data into memory */
-  DMA4SZ = 0xFFFF;
-  DMA4CTL &= ~DMAEN;
-  DMA4CTL = (DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0);
-  DMACTL2 |= DMA4TSEL_16;
-  DMA4SA = (uint32_t)&UCA3RXBUF;
+  /* DMA1 handles 'write' requests by shoveling data into memory */
+  DMA1CTL = (DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0);
+  DMACTL0 |= DMA1TSEL_14;
+  DMA1SA = (uint32_t)&UCA0RXBUF;
+  DMA1SZ = 0xFFFF;
 
-  /* DMA5 handles 'read' requests by shoveling data out of memory */
-  DMA5SZ = 0xFFFF;
-  DMA5CTL &= ~DMAEN;
-  DMA5CTL = (DMASRCBYTE | DMADSTBYTE | DMASRCINCR_3 | DMADT_0);
-  DMACTL2 |= DMA5TSEL_17;
-  DMA5DA = (uint32_t)&UCA3TXBUF;
+  /* DMA2 handles 'read' requests by shoveling data out of memory */
+  DMA2CTL = (DMASRCBYTE | DMADSTBYTE | DMASRCINCR_3 | DMADT_0);
+  DMACTL1 |= DMA2TSEL_15;
+  DMA2DA = (uint32_t)&UCA0TXBUF;
+  DMA2SZ = 0xFFFF;
 }
 
 extern __int20__ cs_handler(uint8_t *data_buf);
 
-__attribute__((interrupt(PORT6_VECTOR))) void PORT6_ISR(void) {
-  P6IFG &= ~BIT3;
+__attribute__((interrupt(PORT1_VECTOR))) void PORT1_ISR(void) {
+  P1IFG &= ~BIT4;
   LPM4_EXIT;
 }
 
@@ -82,49 +80,49 @@ int main(void) {
 
   // Configure GPIO
   P1OUT = 0;
-  P1DIR = 0xFF;
+  P1DIR = 0x0;
   P1SEL0 = 0x0;
   P1SEL1 = 0x0;
 
   P2OUT = 0;
-  P2DIR = 0xFF;
+  P2DIR = 0x0;
   P2SEL0 = 0x0;
   P2SEL1 = 0x0;
 
   P3OUT = 0;
-  P3DIR = 0xFF;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
+  P3DIR = 0x0;
+  P3SEL0 = 0x0;
+  P3SEL1 = 0x0;
 
   P4OUT = 0;
-  P4DIR = 0xFF;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
+  P4DIR = 0x0;
+  P4SEL0 = 0x0;
+  P4SEL1 = 0x0;
 
   P5OUT = 0;
-  P5DIR = 0xFF;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
+  P5DIR = 0x0;
+  P5SEL0 = 0x0;
+  P5SEL1 = 0x0;
 
-  P6DIR = ~(BIT0 | BIT2 | BIT3);
   P6OUT = 0;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
+  P6DIR = 0x0;
+  P6SEL0 = 0x0;
+  P6SEL1 = 0x0;
 
   P7OUT = 0;
-  P7DIR = 0xFF;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
+  P7DIR = 0x00;
+  P7SEL0 = 0x0;
+  P7SEL1 = 0x0;
 
   P8OUT = 0;
-  P8DIR = 0xFF;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
+  P8DIR = 0x00;
+  P8SEL0 = 0x0;
+  P8SEL1 = 0x0;
 
   PJOUT = 0;
-  PJDIR = 0xFFFF;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
+  PJDIR = 0x0000;
+  PJSEL0 = 0x0;
+  PJSEL1 = 0x0;
 
   /* Use password and add wait states */
   FRCTL0 = FRCTLPW | NWAITS_1;
@@ -141,18 +139,21 @@ int main(void) {
   CSCTL2 = SELM__DCOCLK | SELS__DCOCLK | SELA__LFXTCLK;
 
   /* Clear pending interrupt */
-  P6IFG &= ~BIT3;
+  P1IFG &= ~BIT4;
   /* Input direction for CS */
-  P6DIR &= ~BIT3;
+  P1DIR &= ~BIT4;
   /* Enable interrupt */
-  P6IE |= BIT3;
+  P1IE |= BIT4;
   /* Configure rising edge interrupt */
-  P6IES &= ~BIT3;
+  P1IES &= ~BIT4;
+
+  P3DIR |= BIT6;
 
   /* Wait in LPM4 until CS is high */
   __bis_SR_register(GIE + LPM4_bits);
 
-  // uart_init();
+  uart_init();
+
   spi_init();
   dma_init();
 
@@ -164,9 +165,9 @@ int main(void) {
 
   while (1) {
     /* Configure falling edge */
-    P6IES |= BIT3;
+    P1IES |= BIT4;
     /* Clear pending interrupt */
-    P6IFG &= ~BIT3;
+    P1IFG &= ~BIT4;
 
     /* Stop watchdog */
     WDTCTL = WDTPW | WDTHOLD;
@@ -177,27 +178,33 @@ int main(void) {
     /* Start watchdog with 250ms period */
     WDTCTL = WDTPW | WDTCNTCL | WDTSSEL__ACLK | WDTIS_5;
 
+    P3OUT |= BIT6;
     tmp = cs_handler((uint8_t *)0x10000);
 
     /* Configure rising edge interrupt */
-    P6IES &= ~BIT3;
+    P1IES &= ~BIT4;
     /* Clear pending interrupt */
-    P6IFG &= ~BIT3;
+    P1IFG &= ~BIT4;
 
     /* Go into LPM0 to still allow DMA to move data */
     __bis_SR_register(LPM0_bits);
-    /* Reset DMA channels */
-    DMA3CTL &= ~DMAEN;
-    DMA4CTL &= ~DMAEN;
-    DMA5CTL &= ~DMAEN;
+    P3OUT &= ~BIT6;
 
-    DMA4SZ = 0xFFFF;
-    DMA5SZ = 0xFFFF;
-    DMA3SZ = 3;
+    uint8_t *test_data = (uint8_t *)0x10000;
+    printf("%u,%u", *test_data, *(test_data + 1));
+
+    /* Reset DMA channels */
+    DMA0CTL &= ~DMAEN;
+    DMA1CTL &= ~DMAEN;
+    DMA2CTL &= ~DMAEN;
+
+    DMA0SZ = 3;
+    DMA2SZ = 0xFFFF;
+    DMA1SZ = 0xFFFF;
 
     /* Reset SPI */
-    UCA3CTLW0 |= UCSWRST;
-    UCA3TXBUF = 0x0;
-    UCA3CTLW0 &= ~UCSWRST;
+    UCA0CTLW0 |= UCSWRST;
+    UCA0TXBUF = 0x0;
+    UCA0CTLW0 &= ~UCSWRST;
   };
 }
