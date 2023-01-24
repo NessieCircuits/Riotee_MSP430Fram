@@ -37,7 +37,7 @@ void spi_init() {
   UCA0CTLW0 &= ~UCSWRST;
 }
 
-static uint8_t dma_cmd_buf[3];
+static uint8_t dma_cmd_buf[4];
 
 void dma_init(void) {
   /* Reset DMA channels */
@@ -116,16 +116,13 @@ int gpio_init(void) {
 
   return 0;
 }
-extern __int20__ cs_handler(uint8_t *data_buf);
 
 __attribute__((interrupt(PORT1_VECTOR))) void PORT1_ISR(void) {
   P1IFG &= ~BIT4;
   LPM4_EXIT;
 }
 
-/* This C implementation still does not work. Problem seems to be writing 20-bit
- * addresses into DMA registers. */
-int setup_transfer(unsigned long base_addr) {
+int setup_transfer(uint8_t *base_addr) {
 
   /* Clear RX and DMA interrupt */
   UCA0IFG &= ~UCRXIFG;
@@ -136,17 +133,17 @@ int setup_transfer(unsigned long base_addr) {
   };
   DMA0CTL &= ~DMAIFG;
 
+  uint8_t *addr = base_addr + *((uintptr_t *)dma_cmd_buf);
+
   /* Write request */
   if (dma_cmd_buf[2] & 0x80) {
-    P3OUT |= BIT6;
-    DMA1DA = base_addr;
+    _data16_write_addr(&DMA1DA, addr);
     UCA0IFG &= ~UCRXIFG;
     DMA1CTL |= DMAEN;
-    P3OUT &= ~BIT6;
     /* Read request */
   } else {
-    UCA0TXBUF = *((uint8_t *)base_addr);
-    DMA2SA = base_addr + 1;
+    UCA0TXBUF = *addr;
+    _data16_write_addr(&DMA2SA, addr + 1);
     DMA2CTL |= DMAEN;
   }
 
@@ -186,8 +183,6 @@ int main(void) {
   /* Configure rising edge interrupt */
   P1IES &= ~BIT4;
 
-  P3DIR |= BIT6;
-
   /* Wait in LPM4 until CS is high */
   __bis_SR_register(GIE + LPM4_bits);
 
@@ -216,8 +211,8 @@ int main(void) {
     /* Start watchdog with 250ms period */
     WDTCTL = WDTPW | WDTCNTCL | WDTSSEL__ACLK | WDTIS_5;
 
-    // setup_transfer(0x10000UL);
-    cs_handler((uint8_t *)0x10000);
+    setup_transfer((uint8_t *)0x10000UL);
+
     /* Configure rising edge interrupt */
     P1IES &= ~BIT4;
     /* Clear pending interrupt */
