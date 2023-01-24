@@ -63,6 +63,56 @@ void dma_init(void) {
   DMA2SZ = 0xFFFF;
 }
 
+int gpio_init(void) {
+
+  /* To save energy, all non-shared GPIOs are put to a defined state */
+  P1OUT = 0x0;
+  P1DIR = BIT0 | BIT1 | BIT2 | BIT6 | BIT7;
+  P1SEL0 = 0x0;
+  P1SEL1 = 0x0;
+
+  P2OUT = 0;
+  P2DIR = BIT2 | BIT7;
+  P2SEL0 = 0x0;
+  P2SEL1 = 0x0;
+
+  P3OUT = 0;
+  P3DIR = BIT0 | BIT1 | BIT2 | BIT4 | BIT5 | BIT7;
+  P3SEL0 = 0x0;
+  P3SEL1 = 0x0;
+
+  P4OUT = 0;
+  P4DIR = BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5 | BIT7;
+  P4SEL0 = 0x0;
+  P4SEL1 = 0x0;
+
+  P5OUT = 0;
+  P5DIR = BIT6 | BIT7;
+  P5SEL0 = 0x0;
+  P5SEL1 = 0x0;
+
+  P6OUT = 0;
+  P6DIR = BIT0 | BIT1 | BIT3 | BIT6 | BIT7;
+  P6SEL0 = 0x0;
+  P6SEL1 = 0x0;
+
+  P7OUT = 0;
+  P7DIR = BIT1 | BIT2 | BIT4 | BIT6 | BIT7;
+  P7SEL0 = 0x0;
+  P7SEL1 = 0x0;
+
+  P8OUT = 0;
+  P8DIR = BIT0 | BIT1 | BIT2 | BIT3;
+  P8SEL0 = 0x0;
+  P8SEL1 = 0x0;
+
+  PJOUT = 0;
+  PJDIR = BIT3 | BIT7;
+  PJSEL0 = 0x0;
+  PJSEL1 = 0x0;
+
+  return 0;
+}
 extern __int20__ cs_handler(uint8_t *data_buf);
 
 __attribute__((interrupt(PORT1_VECTOR))) void PORT1_ISR(void) {
@@ -78,51 +128,7 @@ int main(void) {
   /* Apply the GPIO configuration */
   PM5CTL0 &= ~LOCKLPM5;
 
-  // Configure GPIO
-  P1OUT = 0;
-  P1DIR = 0x0;
-  P1SEL0 = 0x0;
-  P1SEL1 = 0x0;
-
-  P2OUT = 0;
-  P2DIR = 0x0;
-  P2SEL0 = 0x0;
-  P2SEL1 = 0x0;
-
-  P3OUT = 0;
-  P3DIR = 0x0;
-  P3SEL0 = 0x0;
-  P3SEL1 = 0x0;
-
-  P4OUT = 0;
-  P4DIR = 0x0;
-  P4SEL0 = 0x0;
-  P4SEL1 = 0x0;
-
-  P5OUT = 0;
-  P5DIR = 0x0;
-  P5SEL0 = 0x0;
-  P5SEL1 = 0x0;
-
-  P6OUT = 0;
-  P6DIR = 0x0;
-  P6SEL0 = 0x0;
-  P6SEL1 = 0x0;
-
-  P7OUT = 0;
-  P7DIR = 0x00;
-  P7SEL0 = 0x0;
-  P7SEL1 = 0x0;
-
-  P8OUT = 0;
-  P8DIR = 0x00;
-  P8SEL0 = 0x0;
-  P8SEL1 = 0x0;
-
-  PJOUT = 0;
-  PJDIR = 0x0000;
-  PJSEL0 = 0x0;
-  PJSEL1 = 0x0;
+  gpio_init();
 
   /* Use password and add wait states */
   FRCTL0 = FRCTLPW | NWAITS_1;
@@ -152,7 +158,8 @@ int main(void) {
   /* Wait in LPM4 until CS is high */
   __bis_SR_register(GIE + LPM4_bits);
 
-  uart_init();
+  /* WARNING: THIS CAN INTERFERE WITH NRF52 */
+  // uart_init();
 
   spi_init();
   dma_init();
@@ -191,7 +198,6 @@ int main(void) {
     P3OUT &= ~BIT6;
 
     uint8_t *test_data = (uint8_t *)0x10000;
-    printf("%u,%u", *test_data, *(test_data + 1));
 
     /* Reset DMA channels */
     DMA0CTL &= ~DMAEN;
