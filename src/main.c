@@ -37,6 +37,8 @@ void spi_init() {
   UCA0CTLW0 &= ~UCSWRST;
 }
 
+static uint8_t dma_cmd_buf[3];
+
 void dma_init(void) {
   /* Reset DMA channels */
   DMA0CTL &= ~DMAEN;
@@ -47,19 +49,20 @@ void dma_init(void) {
   DMA0CTL = DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0;
   /* trigger 14 is USCIA0RXIFG*/
   DMACTL0 |= DMA0TSEL_14;
-  DMA0SA = (uint16_t)&UCA0RXBUF;
+  DMA0SA = (uintptr_t)&UCA0RXBUF;
+  DMA0DA = (uintptr_t)dma_cmd_buf;
   DMA0SZ = 3;
 
   /* DMA1 handles 'write' requests by shoveling data into memory */
   DMA1CTL = (DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0);
   DMACTL0 |= DMA1TSEL_14;
-  DMA1SA = (uint32_t)&UCA0RXBUF;
+  DMA1SA = (uintptr_t)&UCA0RXBUF;
   DMA1SZ = 0xFFFF;
 
   /* DMA2 handles 'read' requests by shoveling data out of memory */
   DMA2CTL = (DMASRCBYTE | DMADSTBYTE | DMASRCINCR_3 | DMADT_0);
   DMACTL1 |= DMA2TSEL_15;
-  DMA2DA = (uint32_t)&UCA0TXBUF;
+  DMA2DA = (uintptr_t)&UCA0TXBUF;
   DMA2SZ = 0xFFFF;
 }
 
@@ -120,6 +123,36 @@ __attribute__((interrupt(PORT1_VECTOR))) void PORT1_ISR(void) {
   LPM4_EXIT;
 }
 
+/* This C implementation still does not work. Problem seems to be writing 20-bit
+ * addresses into DMA registers. */
+int setup_transfer(unsigned long base_addr) {
+
+  /* Clear RX and DMA interrupt */
+  UCA0IFG &= ~UCRXIFG;
+  /* Enable DMA0 */
+  DMA0CTL |= DMAEN;
+  /* Wait for DMA transfer to finish */
+  while ((DMA0CTL & DMAIFG) == 0) {
+  };
+  DMA0CTL &= ~DMAIFG;
+
+  /* Write request */
+  if (dma_cmd_buf[2] & 0x80) {
+    P3OUT |= BIT6;
+    DMA1DA = base_addr;
+    UCA0IFG &= ~UCRXIFG;
+    DMA1CTL |= DMAEN;
+    P3OUT &= ~BIT6;
+    /* Read request */
+  } else {
+    UCA0TXBUF = *((uint8_t *)base_addr);
+    DMA2SA = base_addr + 1;
+    DMA2CTL |= DMAEN;
+  }
+
+  return 0;
+}
+
 int main(void) {
 
   /* Stop watchdog */
@@ -168,8 +201,6 @@ int main(void) {
   P4OUT |= BIT2;
   P4OUT &= ~BIT2;
 
-  volatile __int20__ tmp;
-
   while (1) {
     /* Configure falling edge */
     P1IES |= BIT4;
@@ -185,9 +216,8 @@ int main(void) {
     /* Start watchdog with 250ms period */
     WDTCTL = WDTPW | WDTCNTCL | WDTSSEL__ACLK | WDTIS_5;
 
-    P3OUT |= BIT6;
-    tmp = cs_handler((uint8_t *)0x10000);
-
+    // setup_transfer(0x10000UL);
+    cs_handler((uint8_t *)0x10000);
     /* Configure rising edge interrupt */
     P1IES &= ~BIT4;
     /* Clear pending interrupt */
@@ -195,9 +225,6 @@ int main(void) {
 
     /* Go into LPM0 to still allow DMA to move data */
     __bis_SR_register(LPM0_bits);
-    P3OUT &= ~BIT6;
-
-    uint8_t *test_data = (uint8_t *)0x10000;
 
     /* Reset DMA channels */
     DMA0CTL &= ~DMAEN;

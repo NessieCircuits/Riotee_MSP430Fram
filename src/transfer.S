@@ -19,7 +19,7 @@ cs_handler:
     bic.b #UCRXIFG,&UCA0IFG; Clear RX interrupt
     bis.w #DMAEN,&DMA0CTL; Enable DMA0
 
-    bis.b #BIT1,&P4OUT; set pin high
+    bis.b #BIT6,&P3OUT; set pin high
     bit.w #DMAIFG,&DMA0CTL; DMA interrupt?
     jz $-4
     bic.w #DMAIFG,&DMA0CTL; clear DMA interrupt
@@ -39,7 +39,7 @@ read:
     mova r4, &DMA2SA; source is requested address
     bis.w #DMAEN,&DMA2CTL; Enable DMA2
 handler_end:
-    bic.b #BIT1,&P4OUT; set pin low
+    bic.b #BIT6,&P3OUT; set pin low
     mova r4, r12
     add #4, SP
     pop r4
