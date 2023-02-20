@@ -102,8 +102,8 @@ int gpio_init(void) {
   P7OUT = 0;
   P7DIR = BIT1 | BIT2 | BIT4 | BIT6 | BIT7;
   /* This is configured as ADC pin to reduce leakage */
-  P7SEL0 = BIT5;
-  P7SEL1 = BIT5;
+  P7SEL0 = 0x0;
+  P7SEL1 = 0x0;
 
   P8OUT = 0;
   P8DIR = BIT0 | BIT1 | BIT2 | BIT3;
