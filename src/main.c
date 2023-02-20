@@ -101,8 +101,9 @@ int gpio_init(void) {
 
   P7OUT = 0;
   P7DIR = BIT1 | BIT2 | BIT4 | BIT6 | BIT7;
-  P7SEL0 = 0x0;
-  P7SEL1 = 0x0;
+  /* This is configured as ADC pin to reduce leakage */
+  P7SEL0 = BIT5;
+  P7SEL1 = BIT5;
 
   P8OUT = 0;
   P8DIR = BIT0 | BIT1 | BIT2 | BIT3;
@@ -188,13 +189,11 @@ int main(void) {
 
   /* WARNING: THIS CAN INTERFERE WITH NRF52 */
   // uart_init();
+  // P3OUT &= ~BIT6;
+  // P3DIR |= BIT6;
 
   spi_init();
   dma_init();
-
-  P4DIR |= BIT1 | BIT2;
-  P4OUT |= BIT2;
-  P4OUT &= ~BIT2;
 
   while (1) {
     /* Configure falling edge */
@@ -202,14 +201,8 @@ int main(void) {
     /* Clear pending interrupt */
     P1IFG &= ~BIT4;
 
-    /* Stop watchdog */
-    WDTCTL = WDTPW | WDTHOLD;
-
     /* Go into LPM4 and wakeup on GPIO edge */
     __bis_SR_register(LPM4_bits);
-
-    /* Start watchdog with 250ms period */
-    WDTCTL = WDTPW | WDTCNTCL | WDTSSEL__ACLK | WDTIS_5;
 
     setup_transfer((uint8_t *)0x10000UL);
 
