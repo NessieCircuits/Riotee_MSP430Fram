@@ -144,7 +144,7 @@ static inline int setup_transfer() {
   DMA0CTL |= DMAEN;
 
   /* Start watchdog with ~2.95ms period */
-  WDTCTL = WDTPW | WDTIS__64;
+  WDTCTL = WDTPW | WDTIS__64 | WDTCNTCL | WDTSSEL__ACLK;
 
   /* Wait for DMA transfer to finish */
   while ((DMA0CTL & DMAIFG) == 0) {
