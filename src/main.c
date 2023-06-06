@@ -113,7 +113,6 @@ static int gpio_init(void) {
 
   P7OUT = 0;
   P7DIR = BIT1 | BIT2 | BIT4 | BIT6 | BIT7;
-  /* This is configured as ADC pin to reduce leakage */
   P7SEL0 = 0x0;
   P7SEL1 = 0x0;
 
@@ -123,7 +122,8 @@ static int gpio_init(void) {
   P8SEL1 = 0x0;
 
   PJOUT = 0;
-  PJDIR = BIT3 | BIT7;
+  /* BIT2 is C2C.GPIO */
+  PJDIR = BIT2 | BIT3 | BIT7;
   PJSEL0 = 0x0;
   PJSEL1 = 0x0;
 
@@ -219,6 +219,8 @@ int main(void) {
   __bis_SR_register(GIE + LPM4_bits);
 
   /* WARNING: THIS CAN INTERFERE WITH NRF52 */
+  // uart_init();
+
   spi_init();
   dma_init();
 
@@ -230,11 +232,15 @@ int main(void) {
     P1IES |= BIT4;
     /* Clear pending interrupt */
     P1IFG &= ~BIT4;
-    P3OUT |= BIT6;
+    /* Signal the controller that we're ready for a command */
+    PJOUT |= BIT2;
     /* Go into LPM4 and wakeup on GPIO edge */
     __bis_SR_register(LPM4_bits);
-
+    /* Signal the controller that we're busy */
+    PJOUT &= ~BIT2;
     setup_transfer();
+    /* Signal the controller that we're ready for a transaction */
+    PJOUT |= BIT2;
 
     /* Configure rising edge interrupt */
     P1IES &= ~BIT4;
@@ -243,6 +249,8 @@ int main(void) {
 
     /* Go into LPM0 to still allow DMA to move data */
     __bis_SR_register(LPM0_bits);
+    /* Signal the controller that we're busy */
+    PJOUT &= ~BIT2;
 
     /* Reset DMA channels */
     DMA0CTL &= ~DMAEN;
