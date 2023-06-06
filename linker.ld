@@ -30,7 +30,7 @@
 /*  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                          */
 /* ============================================================================ */
 
-/* This file supports MSP430FR5994 devices. */
+/* This file supports MSP430FR5962 devices. */
 /* Version: 1.212 */
 /* Default linker script, for normal executables */
 
@@ -40,16 +40,13 @@ ENTRY(_start)
 MEMORY {
   TINYRAM          : ORIGIN = 0x000A, LENGTH = 0x0016 /* END=0x001F, size 22 */
   BSL              : ORIGIN = 0x1000, LENGTH = 0x0800 /* END=0x17FF, size 2048 */
-  RAM              : ORIGIN = 0x1C00, LENGTH = 0x1000 /* END=0x2BFF, size 4096 */
-  LEARAM           : ORIGIN = 0x2C00, LENGTH = 0x0EC8 /* END=0x3AC7, size 3784 */
-  LEASTACK         : ORIGIN = 0x3AC8, LENGTH = 0x0138 /* END=0x3BFF, size 312 */
+  RAM              : ORIGIN = 0x1C00, LENGTH = 0x2000 /* END=0x3BFF, size 8192 */
   INFOMEM          : ORIGIN = 0x1800, LENGTH = 0x0200 /* END=0x19FF, size 512 as 4 128-byte segments */
   INFOA            : ORIGIN = 0x1980, LENGTH = 0x0080 /* END=0x19FF, size 128 */
   INFOB            : ORIGIN = 0x1900, LENGTH = 0x0080 /* END=0x197F, size 128 */
   INFOC            : ORIGIN = 0x1880, LENGTH = 0x0080 /* END=0x18FF, size 128 */
   INFOD            : ORIGIN = 0x1800, LENGTH = 0x0080 /* END=0x187F, size 128 */
-  FRAM (rx)        : ORIGIN = 0x4000, LENGTH = 0xBF80 /* END=0xFF7F, size 49024 */
-  HIFRAM (rxw)     : ORIGIN = 0x00010000, LENGTH = 0x00033FF7 /* Boundaries changed to fix CPU47 */
+  FRAM (rx)   : ORIGIN = 0x4000, LENGTH = 0x2000 /* END=0x6000, size 8192 */
   JTAGSIGNATURE    : ORIGIN = 0xFF80, LENGTH = 0x0004
   BSLSIGNATURE     : ORIGIN = 0xFF84, LENGTH = 0x0004
   IPESIGNATURE     : ORIGIN = 0xFF88, LENGTH = 0x0008
@@ -113,7 +110,6 @@ MEMORY {
 
 SECTIONS
 {
-  .leaRAM             : {} > LEARAM
   .jtagsignature      : {} > JTAGSIGNATURE
   .bslsignature       : {} > BSLSIGNATURE
   .ipe :
@@ -140,7 +136,7 @@ SECTIONS
   __interrupt_vector_15  : { KEEP (*(__interrupt_vector_15)) } > VECT15
   __interrupt_vector_16  : { KEEP (*(__interrupt_vector_16)) } > VECT16
   __interrupt_vector_17  : { KEEP (*(__interrupt_vector_17)) } > VECT17
-  __interrupt_vector_18  : { KEEP (*(__interrupt_vector_18)) KEEP (*(__interrupt_vector_lea)) } > VECT18
+  __interrupt_vector_18  : { KEEP (*(__interrupt_vector_18)) } > VECT18
   __interrupt_vector_19  : { KEEP (*(__interrupt_vector_19)) KEEP (*(__interrupt_vector_port8)) } > VECT19
   __interrupt_vector_20  : { KEEP (*(__interrupt_vector_20)) KEEP (*(__interrupt_vector_port7)) } > VECT20
   __interrupt_vector_21  : { KEEP (*(__interrupt_vector_21)) KEEP (*(__interrupt_vector_eusci_b3)) } > VECT21
@@ -245,10 +241,6 @@ SECTIONS
     KEEP (*(.dtors))
   } > FRAM
 
-  .upper.rodata :
-  {
-    *(.upper.rodata.* .upper.rodata)
-  } > HIFRAM
 
   /* This section contains data that is initialised during load
      but not on application reset.  */
@@ -302,19 +294,6 @@ SECTIONS
   PROVIDE(__romdatastart = LOADADDR(.lower.data));
   PROVIDE (__romdatacopysize = SIZEOF(.lower.data) + SIZEOF(.data));
 
-  .upper.data :
-  {
-    __upper_data_init = LOADADDR (.upper.data);
-    /* Status word.  */
-    SHORT(1);
-    __high_datastart = .;
-    *(.upper.data.* .upper.data)
-    __high_dataend = .;
-  } > HIFRAM AT> FRAM
-
-  __rom_highdatacopysize = SIZEOF(.upper.data) - 2;
-  __rom_highdatastart = LOADADDR(.upper.data) + 2;
-
   .lower.bss :
   {
     . = ALIGN(2);
@@ -334,15 +313,6 @@ SECTIONS
   } > RAM
   PROVIDE (__bsssize = SIZEOF(.lower.bss) + SIZEOF(.bss));
 
-  .upper.bss :
-  {
-    . = ALIGN(2);
-    __high_bssstart = .;
-    *(.upper.bss.* .upper.bss)
-    . = ALIGN(2);
-    __high_bssend = .;
-  } > HIFRAM
-  __high_bsssize = SIZEOF(.upper.bss);
 
   /* This section contains data that is not initialised during load
      or application reset.  */
@@ -416,12 +386,6 @@ SECTIONS
     KEEP (*(.tm_clone_table))
   } > FRAM
 
-  .upper.text :
-  {
-    . = ALIGN(2);
-    *(.upper.text.* .upper.text)
-  } > HIFRAM
-
   .infoA (NOLOAD) : {} > INFOA              /* MSP430 INFO FLASH MEMORY SEGMENTS */
   .infoB (NOLOAD) : {} > INFOB
   .infoC (NOLOAD) : {} > INFOC
@@ -483,5 +447,5 @@ SECTIONS
 /* Include peripherals memory map                                           */
 /****************************************************************************/
 
-INCLUDE msp430fr5994_symbols.ld
+INCLUDE msp430fr5962_symbols.ld
 
