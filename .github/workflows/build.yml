@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: sudo apt update && sudo apt install -y p7zip build-essential wget
+
+    - name: Download TI's MSP gcc toolchain
+      run: wget https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-LlCjWuAbzH/9.3.1.2/msp430-gcc-full-linux-x64-installer-9.3.1.2.7z
+
+    - name: Unpack with 7zip
+      run: 7zr x msp430-gcc-full-linux-x64-installer-9.3.1.2.7z
+
+    - name: Run the installer
+      run: sudo ./msp430-gcc-full-linux-x64-installer-9.3.1.2.run --mode unattended
+
+    - name: Build the project
+      run: MSP_GNU_ROOT=/root/ti/msp430-gcc make
+
+    - name: Upload artifacts to github
+      uses: actions/upload-artifact@v3
+      with:
+        name: msp430_nvm_binary
+        path: _build/build.hex
