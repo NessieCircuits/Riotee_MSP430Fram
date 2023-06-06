@@ -5,7 +5,7 @@ OUTPUT_DIR := _build
 SRC_DIR := src
 LINKER_SCRIPT:= linker.ld
 
-DEVICE  = MSP430FR5994
+DEVICE  = MSP430FR5962
 
 CSRC_FILES += \
   uart.c \
@@ -58,7 +58,7 @@ ${OUTPUT_DIR}/build.hex: ${OUTPUT_DIR}/build.elf
 
 flash: ${OUTPUT_DIR}/build.hex
 	@echo Flashing: $<
-	mspdebug tilib 'prog $<'
+	spycoprobe flash -i $<
 
 clean:
 	rm -rf _build/*

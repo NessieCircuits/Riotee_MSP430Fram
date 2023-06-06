@@ -1,5 +1,5 @@
 #include <msp430.h>
-#include <msp430fr5994.h>
+#include <msp430fr5962.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -13,12 +13,27 @@ LPM4.5: 250nA (SVS), 45 nA (no SVS), wakeup time 250us (SVS), 400us (no SVS)
 
 */
 
-void delay_cycles(long unsigned int cycles) {
+extern unsigned char __etext;
+
+#define FRAM_END (FRAM_START + FRAM_LENGTH)
+
+#define IVT_START 0xFF80
+#define IVT_END 0xFFFF
+
+#define CODEDATA_END 0x6000UL
+
+/* R/W bit in the first byte of the SPI command */
+#define CMD_RW_WRITE 1UL
+#define CMD_RW_READ 0UL
+#define CMD_RW_OFFSET 7UL
+#define CMD_RW_WRITE_Msk (CMD_RW_WRITE << CMD_RW_OFFSET)
+
+static inline void delay_cycles(long unsigned int cycles) {
   for (long unsigned int i = 0; i < cycles; i++)
     __no_operation();
 }
 
-void spi_init() {
+static void spi_init() {
   /* Put to reset */
   UCA0CTLW0 |= UCSWRST;
 
@@ -39,7 +54,7 @@ void spi_init() {
 
 static uint8_t dma_cmd_buf[4];
 
-void dma_init(void) {
+static void dma_init(void) {
   /* Reset DMA channels */
   DMA0CTL &= ~DMAEN;
   DMA1CTL &= ~DMAEN;
@@ -51,22 +66,19 @@ void dma_init(void) {
   DMACTL0 |= DMA0TSEL_14;
   DMA0SA = (uintptr_t)&UCA0RXBUF;
   DMA0DA = (uintptr_t)dma_cmd_buf;
-  DMA0SZ = 3;
 
   /* DMA1 handles 'write' requests by shoveling data into memory */
   DMA1CTL = (DMASRCBYTE | DMADSTBYTE | DMADSTINCR_3 | DMADT_0);
   DMACTL0 |= DMA1TSEL_14;
   DMA1SA = (uintptr_t)&UCA0RXBUF;
-  DMA1SZ = 0xFFFF;
 
   /* DMA2 handles 'read' requests by shoveling data out of memory */
   DMA2CTL = (DMASRCBYTE | DMADSTBYTE | DMASRCINCR_3 | DMADT_0);
   DMACTL1 |= DMA2TSEL_15;
   DMA2DA = (uintptr_t)&UCA0TXBUF;
-  DMA2SZ = 0xFFFF;
 }
 
-int gpio_init(void) {
+static int gpio_init(void) {
 
   /* To save energy, all non-shared GPIOs are put to a defined state */
   P1OUT = 0x0;
@@ -123,29 +135,48 @@ __attribute__((interrupt(PORT1_VECTOR))) void PORT1_ISR(void) {
   LPM4_EXIT;
 }
 
-int setup_transfer(uint8_t *base_addr) {
+static inline int setup_transfer() {
+  uint16_t transfer_size;
 
   /* Clear RX and DMA interrupt */
   UCA0IFG &= ~UCRXIFG;
   /* Enable DMA0 */
   DMA0CTL |= DMAEN;
+
+  /* Start watchdog with ~2.95ms period */
+  WDTCTL = WDTPW | WDTIS__64;
+
   /* Wait for DMA transfer to finish */
   while ((DMA0CTL & DMAIFG) == 0) {
   };
   DMA0CTL &= ~DMAIFG;
+  /* Stop watchdog */
+  WDTCTL = WDTPW | WDTHOLD | WDTCNTCL;
 
-  uint8_t *addr = base_addr + *((uintptr_t *)dma_cmd_buf);
+  uint8_t *addr = (uint8_t *)CODEDATA_END + *((uintptr_t *)dma_cmd_buf);
+
+  /* Protect interrupt vector table and end of FRAM from access*/
+  if (addr < (uint8_t *)IVT_START)
+    transfer_size = (uint8_t *)IVT_START - addr;
+  else if (addr < (uint8_t *)IVT_END)
+    return -1;
+  else if (addr > (uint8_t *)(FRAM_END - 0xFFFF))
+    transfer_size = (uint8_t *)FRAM_END - addr;
+  else
+    transfer_size = 0xFFFF;
 
   /* Write request */
-  if (dma_cmd_buf[2] & 0x80) {
+  if (dma_cmd_buf[2] & CMD_RW_WRITE_Msk) {
     _data16_write_addr(&DMA1DA, addr);
     UCA0IFG &= ~UCRXIFG;
     DMA1CTL |= DMAEN;
+    DMA1SZ = transfer_size;
     /* Read request */
   } else {
     UCA0TXBUF = *addr;
     _data16_write_addr(&DMA2SA, addr + 1);
     DMA2CTL |= DMAEN;
+    DMA2SZ = transfer_size;
   }
 
   return 0;
@@ -188,23 +219,22 @@ int main(void) {
   __bis_SR_register(GIE + LPM4_bits);
 
   /* WARNING: THIS CAN INTERFERE WITH NRF52 */
-  // uart_init();
-  // P3OUT &= ~BIT6;
-  // P3DIR |= BIT6;
-
   spi_init();
   dma_init();
 
   while (1) {
+    /* Prepare for command transfer */
+    DMA0SZ = 3;
+
     /* Configure falling edge */
     P1IES |= BIT4;
     /* Clear pending interrupt */
     P1IFG &= ~BIT4;
-
+    P3OUT |= BIT6;
     /* Go into LPM4 and wakeup on GPIO edge */
     __bis_SR_register(LPM4_bits);
 
-    setup_transfer((uint8_t *)0x10000UL);
+    setup_transfer();
 
     /* Configure rising edge interrupt */
     P1IES &= ~BIT4;
@@ -218,10 +248,6 @@ int main(void) {
     DMA0CTL &= ~DMAEN;
     DMA1CTL &= ~DMAEN;
     DMA2CTL &= ~DMAEN;
-
-    DMA0SZ = 3;
-    DMA2SZ = 0xFFFF;
-    DMA1SZ = 0xFFFF;
 
     /* Reset SPI */
     UCA0CTLW0 |= UCSWRST;
