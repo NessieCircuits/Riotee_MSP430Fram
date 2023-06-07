@@ -8,7 +8,7 @@ The MSP430FR59XX series of microcontrollers come with on-board ferroelectric RAM
 
 ## Building
 
-To build the code, you'll need gcc toolchain for the MSP430 microcontroller series. Have a look at the [GitHub workflow](./.github/workflows/build.yml) for how to install the toolchain and build the project.
+To build the code, you'll need the gcc toolchain for the MSP430 microcontroller series. Refer to [the GitHub workflow](./.github/workflows/build.yml) for how to install the toolchain and build the project.
 
 You can also download the latest binary build [here](https://www.riotee.nessie-circuits.de/artifacts/msp430fram/latest/build.hex).
 
@@ -34,7 +34,7 @@ The time from the falling edge of the CS line until the transmission of the firs
 The time from the transmission of the last command byte to the transmission of the first data byte must be at least 25us.
 The time from the rising edge of the CS line until the next falling edge of the CS line must be at least 10us.
 
-## Memory regions
+## Memory map
 
 The MSP430FR5962 has a total of 128kB FRAM.
 Unfortunately, the interrupt vector table lives in the middle of this memory so the 128kB cannot be used contiguosly. Instead they are separated into two regions.
