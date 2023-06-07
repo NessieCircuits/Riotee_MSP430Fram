@@ -1,3 +1,5 @@
+[![Build](https://github.com/geissdoerfer/msp430-fram/actions/workflows/build.yml/badge.svg)](https://github.com/geissdoerfer/msp430-fram/actions/workflows/build.yml)
+
 # MSP430 SPI non-volatile memory firmware
 
 The code in this repository turns an MSP430FR5962 microcontrollers into a general purpose non-volatile memory controlled via SPI.
