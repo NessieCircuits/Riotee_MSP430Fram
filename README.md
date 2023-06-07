@@ -6,10 +6,12 @@ The code in this repository turns an MSP430FR5962 microcontrollers into a genera
 
 The MSP430FR59XX series of microcontrollers come with on-board ferroelectric RAM (FRAM). In contrast to SRAM, this memory is non-volatile, i.e. it keeps its state without requiring periodic refreshs and without requiring a power supply. In contrast to flash memory, which must be erased before being written, FRAM can be treated just like SRAM and writing consumes very little energy.
 
-You can donwload the latest binary build here.
 ## Building
 
 To build the code, you'll need gcc toolchain for the MSP430 microcontroller series. Have a look at the [GitHub workflow](./.github/workflows/build.yml) for how to install the toolchain and build the project.
+
+You can also download the latest binary build [here](https://www.riotee.nessie-circuits.de/artifacts/msp430fram/latest/build.hex).
+
 
 ## Interface
 
