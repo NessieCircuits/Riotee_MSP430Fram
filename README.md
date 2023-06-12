@@ -12,6 +12,25 @@ To build the code, you'll need the gcc toolchain for the MSP430 microcontroller 
 
 You can also download the latest binary build [here](https://www.riotee.nessie-circuits.de/artifacts/msp430fram/latest/build.hex).
 
+## Flashing
+
+To flash the firmware on the MSP430FR5962 on the Riotee module/board, install the [Spycoprobe tool](https://github.com/geissdoerfer/SpycoprobeTool) with:
+
+```bash
+pip install spycoprobe
+```
+
+Now flash the firmware using either
+
+```bash
+make flash
+```
+
+or
+
+```bash
+spycoprobe flash -i _build/build.hex
+```
 
 ## Interface
 
