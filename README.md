@@ -40,7 +40,7 @@ The SPI interface uses mode 0 (Clock low when inactive, data sampled on leading 
 After the SPI controller pulls the CS line low, the peripheral (this firmware) sets up an initial transfer of 3 control bytes.
 These three control bytes contain the 20-bit target address of the memory access and the type of operation (R/W).
 The address is transferred lowest byte first.
-If the highest bit of the third address byte is set, the operation is a write operation, otherwise it is a read operation.
+If the highest bit of the third command byte is set, the operation is a write operation, otherwise it is a read operation.
 After receiving the three command bytes, the peripheral will set up the corresponding DMA transfer and wait in a low power mode until the CS line goes high.
 The controller shall keep the CS line low until the transfer has finished.
 Upon this rising edge, the peripheral stops the transfer and transitions to low power mode again.
@@ -49,7 +49,7 @@ Transfers can have a maximum size of 65535 bytes.
 
 ## Timing requirements
 
-The time from the falling edge of the CS line until the transmission of the first command byte must be at least 15us.
+The time from the falling edge of the CS line until the transmission of the first command byte must be at least 15us and at most 2.95ms.
 The time from the transmission of the last command byte to the transmission of the first data byte must be at least 25us.
 The time from the rising edge of the CS line until the next falling edge of the CS line must be at least 10us.
 
