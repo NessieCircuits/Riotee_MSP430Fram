@@ -66,6 +66,5 @@ The remaining memory area from 0x6000 to 0x24000, excluding the IVT (0xFF80-0xFF
 For an external application talking to the device over SPI, this memory gets mapped to 0x0000 to 0x1E000.
 The firmware will protect the IVT from access.
 Any operation extending over the IVT region or the end of the memory will get truncated without the controller noticing.
-Therefore, avoid reading from or writing to the area from 0x9F80 to 0x9FFF from the controllers perspective.
 
 **The code on the SPI controller talking to this firmware must avoid reading/writing to the IVT region, which lies between 0x9F80 and 0x9FFF from its view.**
