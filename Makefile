@@ -58,7 +58,7 @@ ${OUTPUT_DIR}/build.hex: ${OUTPUT_DIR}/build.elf
 
 flash: ${OUTPUT_DIR}/build.hex
 	@echo Flashing: $<
-	spycoprobe flash -i $<
+	riotee-probe program -d msp430 -f $<
 
 clean:
 	rm -rf _build/*

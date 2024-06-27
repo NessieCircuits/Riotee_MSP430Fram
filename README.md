@@ -14,10 +14,10 @@ You can also download the latest binary build [here](https://github.com/NessieCi
 
 ## Flashing
 
-To flash the firmware on the MSP430FR5962 on the Riotee module/board, install the [Spycoprobe tool](https://github.com/geissdoerfer/SpycoprobeTool) with:
+To flash the firmware on the MSP430FR5962 on the Riotee module/board, install the [riotee-probe tool](https://github.com/NessieCircuits/Riotee_ProbeSoftware?tab=readme-ov-file#installing-the-command-line-tool) with:
 
 ```bash
-pip install spycoprobe
+pip install riotee-probe
 ```
 
 Now flash the firmware using either
@@ -29,7 +29,7 @@ make flash
 or
 
 ```bash
-spycoprobe flash -i _build/build.hex
+riotee-probe program -d msp430 -f PATH_TO/firmware.hex
 ```
 
 ## Interface
@@ -66,5 +66,6 @@ The remaining memory area from 0x6000 to 0x24000, excluding the IVT (0xFF80-0xFF
 For an external application talking to the device over SPI, this memory gets mapped to 0x0000 to 0x1E000.
 The firmware will protect the IVT from access.
 Any operation extending over the IVT region or the end of the memory will get truncated without the controller noticing.
+Therefore, avoid reading from or writing to the area from 0x9F80 to 0x9FFF from the controllers perspective.
 
 **The code on the SPI controller talking to this firmware must avoid reading/writing to the IVT region, which lies between 0x9F80 and 0x9FFF from its view.**
