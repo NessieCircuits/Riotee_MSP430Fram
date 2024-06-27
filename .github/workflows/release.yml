@@ -2,6 +2,11 @@ name: Release firmware
 
 on:
   push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
 
 jobs:
   call-build:
@@ -14,15 +19,11 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: msp430_nvm_binary
-          path: output/
+          name: msp430_nvm_fw
 
-      - name: Upload artifacts to webserver
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+      - run: mv build.hex msp430_nvm_fw_${{github.ref_name}}.hex
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          server: www.riotee.nessie-circuits.de
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: output/
-          server-dir: /htdocs/riotee/artifacts/msp430fram/latest/
-          protocol: ftps
+          files: msp430_nvm_fw_${{github.ref_name}}.hex
