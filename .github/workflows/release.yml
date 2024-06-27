@@ -17,13 +17,13 @@ jobs:
     steps:
       - run: mkdir output
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: msp430_nvm_fw
 
       - run: mv build.hex msp430_nvm_fw_${{github.ref_name}}.hex
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: msp430_nvm_fw_${{github.ref_name}}.hex
