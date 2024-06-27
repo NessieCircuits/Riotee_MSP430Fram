@@ -10,7 +10,7 @@ The MSP430FR59XX series of microcontrollers come with on-board ferroelectric RAM
 
 To build the code, you'll need the gcc toolchain for the MSP430 microcontroller series. Refer to [the GitHub workflow](./.github/workflows/build.yml) for how to install the toolchain and build the project.
 
-You can also download the latest binary build [here](https://www.riotee.nessie-circuits.de/artifacts/msp430fram/latest/build.hex).
+You can also download the latest binary build [here](https://github.com/NessieCircuits/Riotee_MSP430Fram/releases/latest).
 
 ## Flashing
 
@@ -59,7 +59,7 @@ The MSP430FR5962 has a total of 128kB FRAM.
 Unfortunately, the interrupt vector table lives in the middle of this memory so the 128kB cannot be used contiguously. Instead, they are separated into two regions.
 The lower region starts at 0x4000 and ends at 0xFF80 where the IVT lives.
 The upper region starts at 0xFFFF and ends at 0x24000.
-The code/data for this firmware also has to be placed within this area.
+The code/data for the firmware for the MSP430 also has to be placed within this area.
 The linker script in this repository defines a dedicated section for the code and data of the firmware ranging from 0x4000 to 0x6000.
 
 The remaining memory area from 0x6000 to 0x24000, excluding the IVT (0xFF80-0xFFFF) is available as data storage.
